@@ -1,0 +1,21 @@
+#!/bin/bash
+
+
+#Look for worker ID environment variable.
+if [ -z $WORKER_ID ]
+then 
+     echo "Failed to provide worker id for Flurry to start. Please use the $WORKER_ID environment variable"
+     exit 100
+fi
+
+#Look for the home of Flurry
+if [ -z $FLURRY_HOME ]
+then
+     echo "Failed to provide Flurry home. Please use the $FLURRY_HOME environment variable"
+     exit 101
+fi
+
+sed -i.bak "s/@workerid@/${WORKER_ID}/g" application.conf
+$FLURRY_HOME/service/flurry upstartinternal
+
+
