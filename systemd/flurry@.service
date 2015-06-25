@@ -1,0 +1,12 @@
+[Unit]
+Description=Flurry Service
+#After=docker.service
+#Require=docker.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill flurry-%i
+ExecStartPre=-/usr/bin/docker rm flurry-%i
+ExecStart=/usr/bin/docker run -P --name flurry-%i -e WORKER_ID=%i chris/flurry
+ExecStop=/usr/bin/docker stop flurry-%i
+

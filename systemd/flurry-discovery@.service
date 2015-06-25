@@ -1,0 +1,35 @@
+[Unit]
+Description=Flurry Service %i
+
+Requires=etcd.service
+Requires=flurry@%i.service
+
+After=etcd.service
+After=flurry@%i.service
+BindsTo=flurry@%i.service
+
+[Service]
+EnvironmentFile=/etc/environment
+
+ExecStart=/bin/bash -c '\
+	while true; do \
+		flurryPort=`docker inspect -f "{{(index (index .NetworkSettings.Ports \\"9090/tcp\\") 0).HostPort}}" flurry-%i`; \
+		ncat ${COREOS_PUBLIC_IPV4} $flurryPort < /dev/null; \
+		if [ $? -eq 0 ]; then \
+			etcdctl mkdir /services/flurry/%i -ttl 30; \
+			if [ $? -ne 0 ]; then \
+				etcdctl updatedir /services/flurry/%i -ttl 30; \
+			fi; \
+			etcdctl set /services/flurry/%i/host %H -ttl 30; \
+			etcdctl set /services/flurry/%i/ipv4 ${COREOS_PUBLIC_IPV4} -ttl 30; \
+			etcdctl set /services/flurry/%i/port $flurryPort --ttl 30; \
+		else \
+			etcdctl rm --recursive /services/flurry/%i; \
+		fi; \
+		sleep 5; \
+	done;'
+
+ExecStop=-/usr/bin/etcdctl rm --recursive /services/flurry/%i
+
+[X-Fleet]
+X-ConditionMachineOf=flurry@%i.service

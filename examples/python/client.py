@@ -8,14 +8,15 @@ from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
 
 import time
-
+import urllib
+import json
 
 class FlurryClient(object):
   """docstring for FlurryClient"""
   def __init__(self, host, port):
     super(FlurryClient, self).__init__()
     # Make socket
-    transport = TSocket.TSocket('localhost', 9090)
+    transport = TSocket.TSocket(host, port)
 
     # Buffering is critical. Raw sockets are very slow
     self.transport = TTransport.TBufferedTransport(transport)
@@ -69,7 +70,33 @@ def get_id(params):
   print '%d ids took %0.3f ms' % (times, (end-start)*1000.0)
   c.close()
 
+def getHosts():
+  baseurl = "http://172.17.8.101:4001/v2/keys";
+  hostList = json.load(urllib.urlopen(baseurl + '/services/flurry/'))
+  hosts = []
+  print json.dumps(hostList, indent=4)
+  for value in hostList['node']['nodes']:
+    host = dict()
+    hostjson = json.load(urllib.urlopen(baseurl + value['key']))
+    print json.dumps(hostjson, indent=4)
+    for value2 in hostjson['node']['nodes']:
+      host[value2['key'].split('/')[-1]] = value2['value']
+    hosts.append(host)
+  return hosts
+
+
 if __name__ == '__main__':
-    c = FlurryClient('localhost', 9090)
-    print("WORKER ID: %d" % c.get_worker_id())
-    print("ID: %d" % c.get_id())
+    hosts = getHosts();
+    clients = []
+    for host in hosts:
+        clients.append(FlurryClient(host['ipv4'], int(host['port'])))
+
+    while True:
+        i = 0;
+        for client in clients:
+            worker_id = client.get_worker_id()
+            new_id = client.get_id()
+            if i % 1000 == 0:
+                print "WORKER ID: %d" % worker_id + "ID: %d" % new_id
+            i+=1
+
