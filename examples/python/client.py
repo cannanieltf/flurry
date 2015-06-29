@@ -91,8 +91,8 @@ if __name__ == '__main__':
     for host in hosts:
         clients.append(FlurryClient(host['ipv4'], int(host['port'])))
 
+    i = 0;
     while True:
-        i = 0;
         for client in clients:
             worker_id = client.get_worker_id()
             new_id = client.get_id()
