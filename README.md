@@ -6,7 +6,6 @@ Unique id generation service in scala
 Flurry is a "unique id" generation service written in scala, but accesible in any language using thrift. Flurry took its inspiration (and very little code) from Twitter's snowflake service, but by starting from scratch, we have what I think is a cleaner implementation, less dependencies, and it's easily configurable and runnable.
 
 
-
 ## Running
 
 Flurry comes with a service wrapper, which allows it to run on linux or OSX.  In order to run Flurry, follow the instructions below.
@@ -72,4 +71,23 @@ _Same goes for worker id and sequence._
 * _10 bits for sequence = 2^10 = 1024 ids per millisecond per worker you can support._
     
 _You can tune your time, worker, sequence support as needed for your application_
+
+## Running in Docker
+
+Flurry allows you to run the service inside a docker container. All the files needed to build the Docker container are inside the ./docker/ directory. A default application.conf is placed here to be used to configure your flurry containers. If you wish to change the template modify docker/application.conf.
+
+1. docker build -t username/flurry .
+2. docker run -d -P -e WORKER_ID=1 --name flurry-1 username/flurry
+3. docker port flurry-1 # Find the port on which Docker exposed flurry-1 
+4. Connect clients to port found above
+
+## Running in fleetctl
+
+Flurry has been set up to run inside a CoreOS system using fleetctl.
+
+1. cd systemd/
+2. fleetctl start flurry@{1..10} # Starts 10 isntances of flurry
+3. fleetctl start flurry-discovery@{1..10} # Starts dicovery services that register the flurry service with etcd
+4. fleetctl start flurry-example@1 # Starts a consumer that will query etcd for flurry endpoints and then use them to print IDs until killed
+
 
