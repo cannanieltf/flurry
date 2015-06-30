@@ -6,9 +6,8 @@ RUN apt-get --assume-yes install openjdk-8-jdk
 RUN apt-get --assume-yes install git
 RUN apt-get --assume-yes install unzip
 WORKDIR /
-RUN git clone https://github.com/BazuSports/flurry.git
+RUN git clone https://github.com/cannanieltf/flurry.git
 WORKDIR /flurry
-RUN sed -i.bak 's/\.7/\.12/g' gradle/wrapper/gradle-wrapper.properties
 RUN ./gradlew build
 RUN ./gradlew flurryZip
 RUN unzip /flurry/build/distributions/*.zip -d /
