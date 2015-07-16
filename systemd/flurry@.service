@@ -7,6 +7,6 @@ Description=Flurry Service
 TimeoutStartSec=0
 ExecStartPre=-/usr/bin/docker kill flurry-%i
 ExecStartPre=-/usr/bin/docker rm flurry-%i
-ExecStart=/usr/bin/docker run -P --name flurry-%i -e WORKER_ID=%i chris/flurry
+ExecStart=/usr/bin/docker run -P --name flurry-%i -e WORKER_ID=%i localhub.chronotrack.com:5000/cannanie/flurry
 ExecStop=/usr/bin/docker stop flurry-%i
 
